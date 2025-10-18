@@ -11,10 +11,10 @@ st.set_page_config(
 )
 
 st.title("💹 Financial KPI Dashboard (2021–2024)")
-st.markdown("Displaying key profitability indicators from the **Financial Dashboard Dataset**.")
+st.markdown("Displaying enlarged, key profitability indicators from the **Financial Dashboard Dataset**.")
 
 # ───────────────────────────────────────────────
-# Financial dataset
+# Dataset
 # ───────────────────────────────────────────────
 data = {
     "Year": [2021, 2022, 2023, 2024],
@@ -27,81 +27,107 @@ data = {
 df = pd.DataFrame(data)
 
 # ───────────────────────────────────────────────
-# Profit calculations
+# Calculations
 # ───────────────────────────────────────────────
 df["Gross Profit"] = df["Revenue"] - df["COGS"]
 df["Operating Profit"] = df["Gross Profit"] - df["Operating Expenses"]
 df["Net Profit"] = df["Operating Profit"] - df["Interest"] - df["Taxes"]
 
-# ───────────────────────────────────────────────
-# Margin calculations (%)
-# ───────────────────────────────────────────────
 df["Gross Margin %"] = (df["Gross Profit"] / df["Revenue"]) * 100
 df["Operating Margin %"] = (df["Operating Profit"] / df["Revenue"]) * 100
 df["Net Margin %"] = (df["Net Profit"] / df["Revenue"]) * 100
 
-# Latest year for KPIs
 latest = df.iloc[-1]
 previous = df.iloc[-2]
 
 # ───────────────────────────────────────────────
-# KPI Section – Large Metrics
+# Helper: Large KPI Card Function
 # ───────────────────────────────────────────────
-st.markdown("### 📊 Profit Metrics")
+def kpi_card(title, value, delta=None, color="#2E8B57"):
+    st.markdown(
+        f"""
+        <div style="
+            background-color: {color};
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            ">
+            <h2 style="font-size: 24px; margin-bottom: 10px;">{title}</h2>
+            <h1 style="font-size: 46px; margin: 0;">{value}</h1>
+            <p style="font-size: 18px; opacity: 0.85;">{delta}</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+# ───────────────────────────────────────────────
+# KPI Section – Profits
+# ───────────────────────────────────────────────
+st.markdown("### 💰 Profit Metrics")
 
 col1, col2, col3 = st.columns(3)
 
-col1.metric(
-    label="💰 Gross Profit (2024)",
-    value=f"£{latest['Gross Profit']:,}",
-    delta=f"£{latest['Gross Profit'] - previous['Gross Profit']:,}"
-)
+with col1:
+    kpi_card(
+        "Gross Profit (2024)",
+        f"£{latest['Gross Profit']:,}",
+        f"Δ £{latest['Gross Profit'] - previous['Gross Profit']:,}",
+        color="#1E90FF"
+    )
 
-col2.metric(
-    label="🏢 Operating Profit (2024)",
-    value=f"£{latest['Operating Profit']:,}",
-    delta=f"£{latest['Operating Profit'] - previous['Operating Profit']:,}"
-)
+with col2:
+    kpi_card(
+        "Operating Profit (2024)",
+        f"£{latest['Operating Profit']:,}",
+        f"Δ £{latest['Operating Profit'] - previous['Operating Profit']:,}",
+        color="#4682B4"
+    )
 
-col3.metric(
-    label="📈 Net Profit (2024)",
-    value=f"£{latest['Net Profit']:,}",
-    delta=f"£{latest['Net Profit'] - previous['Net Profit']:,}"
-)
-
-st.markdown("---")
+with col3:
+    kpi_card(
+        "Net Profit (2024)",
+        f"£{latest['Net Profit']:,}",
+        f"Δ £{latest['Net Profit'] - previous['Net Profit']:,}",
+        color="#2E8B57"
+    )
 
 # ───────────────────────────────────────────────
-# Margin Section – Enlarged Layout
+# KPI Section – Margins
 # ───────────────────────────────────────────────
-st.markdown("### 📐 Profit Margin Ratios")
+st.markdown("### 📐 Profit Margins")
 
 col4, col5, col6 = st.columns(3)
 
-col4.metric(
-    label="Gross Margin %",
-    value=f"{latest['Gross Margin %']:.1f}%",
-    delta=f"{latest['Gross Margin %'] - previous['Gross Margin %']:.1f} pp"
-)
+with col4:
+    kpi_card(
+        "Gross Margin %",
+        f"{latest['Gross Margin %']:.1f}%",
+        f"Δ {latest['Gross Margin %'] - previous['Gross Margin %']:.1f} pp",
+        color="#20B2AA"
+    )
 
-col5.metric(
-    label="Operating Margin %",
-    value=f"{latest['Operating Margin %']:.1f}%",
-    delta=f"{latest['Operating Margin %'] - previous['Operating Margin %']:.1f} pp"
-)
+with col5:
+    kpi_card(
+        "Operating Margin %",
+        f"{latest['Operating Margin %']:.1f}%",
+        f"Δ {latest['Operating Margin %'] - previous['Operating Margin %']:.1f} pp",
+        color="#00BFFF"
+    )
 
-col6.metric(
-    label="Net Margin %",
-    value=f"{latest['Net Margin %']:.1f}%",
-    delta=f"{latest['Net Margin %'] - previous['Net Margin %']:.1f} pp"
-)
-
-st.markdown("---")
+with col6:
+    kpi_card(
+        "Net Margin %",
+        f"{latest['Net Margin %']:.1f}%",
+        f"Δ {latest['Net Margin %'] - previous['Net Margin %']:.1f} pp",
+        color="#3CB371"
+    )
 
 # ───────────────────────────────────────────────
 # Data Table
 # ───────────────────────────────────────────────
-st.markdown("### 📋 Detailed Financial Data")
+st.markdown("### 📋 Full Financial Data")
 st.dataframe(
     df.style.format({
         "Revenue": "£{:,.0f}",
@@ -118,9 +144,6 @@ st.dataframe(
     })
 )
 
-# ───────────────────────────────────────────────
-# Footer
-# ───────────────────────────────────────────────
 st.caption("Generated with 🧠 AI + Streamlit | Dataset: mohazone/financial-dashboard (Kaggle)")
 
 
