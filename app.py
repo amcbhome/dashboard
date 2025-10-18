@@ -1,22 +1,20 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 # ───────────────────────────────────────────────
 # Page setup
 # ───────────────────────────────────────────────
 st.set_page_config(
-    page_title="Financial Dashboard",
-    layout="centered",
-    page_icon="💹"
+    page_title="Financial KPI Dashboard",
+    page_icon="💹",
+    layout="wide"
 )
 
-st.title("💹 Financial Performance Dashboard (2021–2024)")
-st.markdown("Visualising key profit metrics and trends using the **Financial Dashboard Dataset**.")
+st.title("💹 Financial KPI Dashboard (2021–2024)")
+st.markdown("Displaying key profitability indicators from the **Financial Dashboard Dataset**.")
 
 # ───────────────────────────────────────────────
-# Data preparation
+# Financial dataset
 # ───────────────────────────────────────────────
 data = {
     "Year": [2021, 2022, 2023, 2024],
@@ -29,60 +27,100 @@ data = {
 df = pd.DataFrame(data)
 
 # ───────────────────────────────────────────────
-# Metric calculations
+# Profit calculations
 # ───────────────────────────────────────────────
 df["Gross Profit"] = df["Revenue"] - df["COGS"]
 df["Operating Profit"] = df["Gross Profit"] - df["Operating Expenses"]
 df["Net Profit"] = df["Operating Profit"] - df["Interest"] - df["Taxes"]
 
-latest = df.iloc[-1]  # most recent year (2024)
+# ───────────────────────────────────────────────
+# Margin calculations (%)
+# ───────────────────────────────────────────────
+df["Gross Margin %"] = (df["Gross Profit"] / df["Revenue"]) * 100
+df["Operating Margin %"] = (df["Operating Profit"] / df["Revenue"]) * 100
+df["Net Margin %"] = (df["Net Profit"] / df["Revenue"]) * 100
+
+# Latest year for KPIs
+latest = df.iloc[-1]
+previous = df.iloc[-2]
 
 # ───────────────────────────────────────────────
-# KPI Section
+# KPI Section – Large Metrics
 # ───────────────────────────────────────────────
-st.markdown("### 📊 Key Financial Metrics")
+st.markdown("### 📊 Profit Metrics")
+
 col1, col2, col3 = st.columns(3)
 
 col1.metric(
-    label="Gross Profit (2024)",
+    label="💰 Gross Profit (2024)",
     value=f"£{latest['Gross Profit']:,}",
-    delta=f"£{df['Gross Profit'].iloc[-1] - df['Gross Profit'].iloc[-2]:,}"
-)
-col2.metric(
-    label="Operating Profit (2024)",
-    value=f"£{latest['Operating Profit']:,}",
-    delta=f"£{df['Operating Profit'].iloc[-1] - df['Operating Profit'].iloc[-2]:,}"
-)
-col3.metric(
-    label="Net Profit (2024)",
-    value=f"£{latest['Net Profit']:,}",
-    delta=f"£{df['Net Profit'].iloc[-1] - df['Net Profit'].iloc[-2]:,}"
+    delta=f"£{latest['Gross Profit'] - previous['Gross Profit']:,}"
 )
 
+col2.metric(
+    label="🏢 Operating Profit (2024)",
+    value=f"£{latest['Operating Profit']:,}",
+    delta=f"£{latest['Operating Profit'] - previous['Operating Profit']:,}"
+)
+
+col3.metric(
+    label="📈 Net Profit (2024)",
+    value=f"£{latest['Net Profit']:,}",
+    delta=f"£{latest['Net Profit'] - previous['Net Profit']:,}"
+)
+
+st.markdown("---")
+
 # ───────────────────────────────────────────────
-# Line Chart (Profit Trends)
+# Margin Section – Enlarged Layout
 # ───────────────────────────────────────────────
-sns.set_theme(style="darkgrid", palette="crest")
-fig, ax = plt.subplots(figsize=(10, 6))
-ax.plot(df["Year"], df["Gross Profit"], marker='o', linewidth=3, label="Gross Profit")
-ax.plot(df["Year"], df["Operating Profit"], marker='o', linewidth=3, label="Operating Profit")
-ax.plot(df["Year"], df["Net Profit"], marker='o', linewidth=3, label="Net Profit")
-ax.fill_between(df["Year"], df["Net Profit"], color="green", alpha=0.1)
-ax.set_title("📈 Profit Trends Over Time", fontsize=16, weight='bold')
-ax.set_xlabel("Year")
-ax.set_ylabel("£ Amount")
-ax.legend(title="Metrics")
-ax.grid(alpha=0.3)
-st.pyplot(fig)
+st.markdown("### 📐 Profit Margin Ratios")
+
+col4, col5, col6 = st.columns(3)
+
+col4.metric(
+    label="Gross Margin %",
+    value=f"{latest['Gross Margin %']:.1f}%",
+    delta=f"{latest['Gross Margin %'] - previous['Gross Margin %']:.1f} pp"
+)
+
+col5.metric(
+    label="Operating Margin %",
+    value=f"{latest['Operating Margin %']:.1f}%",
+    delta=f"{latest['Operating Margin %'] - previous['Operating Margin %']:.1f} pp"
+)
+
+col6.metric(
+    label="Net Margin %",
+    value=f"{latest['Net Margin %']:.1f}%",
+    delta=f"{latest['Net Margin %'] - previous['Net Margin %']:.1f} pp"
+)
+
+st.markdown("---")
 
 # ───────────────────────────────────────────────
 # Data Table
 # ───────────────────────────────────────────────
 st.markdown("### 📋 Detailed Financial Data")
-st.dataframe(df.style.format("{:,.0f}"))
+st.dataframe(
+    df.style.format({
+        "Revenue": "£{:,.0f}",
+        "COGS": "£{:,.0f}",
+        "Operating Expenses": "£{:,.0f}",
+        "Interest": "£{:,.0f}",
+        "Taxes": "£{:,.0f}",
+        "Gross Profit": "£{:,.0f}",
+        "Operating Profit": "£{:,.0f}",
+        "Net Profit": "£{:,.0f}",
+        "Gross Margin %": "{:.1f}%",
+        "Operating Margin %": "{:.1f}%",
+        "Net Margin %": "{:.1f}%"
+    })
+)
 
 # ───────────────────────────────────────────────
 # Footer
 # ───────────────────────────────────────────────
 st.caption("Generated with 🧠 AI + Streamlit | Dataset: mohazone/financial-dashboard (Kaggle)")
+
 
