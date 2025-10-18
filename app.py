@@ -1,83 +1,125 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 # ───────────────────────────────────────────────
 # Page Setup
 # ───────────────────────────────────────────────
-st.set_page_config(page_title="Modern Financial Dashboard", page_icon="💼", layout="wide")
+st.set_page_config(page_title="Executive KPI Dashboard", page_icon="📊", layout="wide")
 
-st.title("💼 Modern Financial Dashboard")
-st.caption("A monthly breakdown of revenue, expenses, and cost of goods sold (COGS).")
+# Global dark style
+st.markdown(
+    """
+    <style>
+        body {background-color: #0e1117; color: white;}
+        .block-container {padding-top: 1rem;}
+        div[data-testid="stMetricValue"] {font-size: 2rem;}
+        div[data-testid="stMetricLabel"] {color: #bbb;}
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
-# ───────────────────────────────────────────────
-# Simulated Monthly Data
-# ───────────────────────────────────────────────
-months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
-          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-
-data = {
-    "Month": months,
-    "Revenue": [310000, 450000, 380000, 270000, 320000, 250000, 340000, 410000, 430000, 470000, 420000, 390000],
-    "Expenses": [290000, 410000, 370000, 260000, 300000, 240000, 330000, 400000, 420000, 460000, 410000, 380000],
-    "COGS": [120000, 160000, 150000, 100000, 120000, 90000, 140000, 160000, 150000, 170000, 155000, 140000]
-}
-df = pd.DataFrame(data)
-
-# Summary
-total_revenue = df["Revenue"].sum()
-total_expenses = df["Expenses"].sum()
-total_cogs = df["COGS"].sum()
-net_profit = total_revenue - total_expenses
+st.title("📊 Executive Performance Dashboard")
+st.caption("Dark theme KPI view for revenue, partners, and hiring metrics.")
 
 # ───────────────────────────────────────────────
-# Layout: 3 Columns (KPI | Chart | Breakdown)
+# Fake Data (Demo)
 # ───────────────────────────────────────────────
-left, center, right = st.columns([1, 2, 1])
+weeks = ["Jan", "Feb", "Mar", "Apr", "May"]
+revenue = [1000000, 1600000, 1900000, 2200000, 2400000]
+restaurants = [120, 220, 360, 520, 606]
+new_hires = [5, 14, 21, 30, 36]
 
-# LEFT PANEL – KPIs
-with left:
-    st.markdown("### 📊 This Year")
-    st.markdown(f"### 💰 **${total_revenue/1_000_000:.1f}M**  \n**Revenue**")
-    st.markdown(f"### 💸 **${total_expenses/1_000_000:.1f}M**  \n**Expenses**")
-    st.markdown(f"### 🏭 **${total_cogs/1_000_000:.1f}M**  \n**COGS**")
-    st.markdown(f"### 📈 **${net_profit/1_000_000:.1f}M**  \n**Net Profit**")
+# ───────────────────────────────────────────────
+# KPI 1 — Revenue Card
+# ───────────────────────────────────────────────
+col1, col2, col3 = st.columns(3)
 
-# CENTER PANEL – Chart
-with center:
-    st.markdown("### 📆 Monthly Performance")
-    fig, ax = plt.subplots(figsize=(8, 4))
-    width = 0.35
-    ax.bar(df["Month"], df["Revenue"], width, label="Revenue", color="#4CAFEB")
-    ax.bar(df["Month"], df["Expenses"], width, label="Expenses", color="#FFD54F", alpha=0.8, bottom=None)
-    ax.plot(df["Month"], df["COGS"], color="red", linewidth=2, marker="o", label="COGS")
+with col1:
+    st.subheader("💰 Earn 5M in new revenue")
+    st.metric(label="This Year", value="2.4 M SGD", delta="+450 K SGD")
+    st.progress(int(2400000 / 5000000 * 100))
 
-    ax.set_ylabel("USD ($)")
-    ax.set_title("Monthly Revenue vs Expenses with COGS Trend")
-    ax.legend()
+    # Revenue by week bar chart
+    fig, ax = plt.subplots(figsize=(3.5, 2))
+    ax.bar(weeks, revenue, color="#33C3F0")
+    ax.set_facecolor("#0e1117")
+    ax.tick_params(colors="white")
+    ax.set_title("by month", color="white", fontsize=10)
     st.pyplot(fig)
 
-# RIGHT PANEL – Breakdown
-with right:
-    st.markdown("### 🧾 Expense Breakdown")
-    expense_breakdown = {
-        "Salary": 315000,
-        "Office costs": 21000,
-        "Marketing": 25000,
-        "Agency & consultancy": 10400,
-        "Equipment": 7600,
-        "Travel": 8500,
-        "Other": 1500
+    # Gauge: average revenue per restaurant
+    fig, ax = plt.subplots(figsize=(3, 1.5), subplot_kw={'projection': 'polar'})
+    value = 789
+    max_val = 1000
+    theta = np.pi * (1 - value / max_val)
+    ax.barh(0, np.pi - theta, color="#33C3F0")
+    ax.set_theta_zero_location('W')
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
+    ax.set_facecolor("#0e1117")
+    plt.text(0, 0, f"{value} SGD", color="white", ha="center", va="center", fontsize=12)
+    st.pyplot(fig)
+
+# ───────────────────────────────────────────────
+# KPI 2 — Restaurants Card
+# ───────────────────────────────────────────────
+with col2:
+    st.subheader("🏪 Acquire 1000 partner restaurants")
+    st.metric(label="New restaurants", value="606", delta="+86")
+    st.progress(int(606 / 1000 * 100))
+
+    region_data = {
+        "Central Region": 245,
+        "North-East Region": 123,
+        "North Region": 102,
+        "East Region": 88,
+        "West Region": 48,
     }
+    st.markdown("**by region**")
+    for region, val in region_data.items():
+        st.text(f"{region}: {val}")
 
-    for category, value in expense_breakdown.items():
-        st.write(f"**{category}**")
-        st.progress(int(value / max(expense_breakdown.values()) * 100))
-        st.markdown(f"${value/1000:.1f}K")
+    # Gauge for setup time
+    fig, ax = plt.subplots(figsize=(3, 1.5), subplot_kw={'projection': 'polar'})
+    value = 8.7
+    max_val = 20
+    theta = np.pi * (1 - value / max_val)
+    ax.barh(0, np.pi - theta, color="#00FA9A")
+    ax.set_facecolor("#0e1117")
+    plt.text(0, 0, f"{value:.1f} d", color="white", ha="center", va="center", fontsize=12)
+    st.pyplot(fig)
 
 # ───────────────────────────────────────────────
-# Data Table (Optional)
+# KPI 3 — Hiring Card
 # ───────────────────────────────────────────────
-st.markdown("---")
-st.markdown("### 📋 Detailed Data Table")
-st.dataframe(df.style.format({"Revenue": "${:,.0f}", "Expenses": "${:,.0f}", "COGS": "${:,.0f}"}))
+with col3:
+    st.subheader("👥 Hire 50 new team members")
+    st.metric(label="New hires", value="36", delta="+6")
+    st.progress(int(36 / 50 * 100))
+
+    dept_data = {
+        "Account": 12,
+        "CS": 10,
+        "Dev": 8,
+        "Marketing": 4,
+        "Exec": 2,
+    }
+    st.markdown("**by department**")
+    for dept, val in dept_data.items():
+        st.text(f"{dept}: {val}")
+
+    # Gauge for time-to-fill
+    fig, ax = plt.subplots(figsize=(3, 1.5), subplot_kw={'projection': 'polar'})
+    value = 24
+    max_val = 30
+    theta = np.pi * (1 - value / max_val)
+    ax.barh(0, np.pi - theta, color="#FFD54F")
+    ax.set_facecolor("#0e1117")
+    plt.text(0, 0, f"{value} d", color="white", ha="center", va="center", fontsize=12)
+    st.pyplot(fig)
+
+st.caption("Dashboard generated using Streamlit + Matplotlib gauges.")
+
