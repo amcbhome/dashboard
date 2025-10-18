@@ -2,8 +2,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import streamlit as st
-st.pyplot(plt)
 
+# ───────────────────────────────────────────────
+# Page setup
+# ───────────────────────────────────────────────
+st.set_page_config(page_title="Financial Dashboard", layout="centered")
+st.title("📊 Financial Performance Dashboard (2021–2024)")
 
 # ───────────────────────────────────────────────
 # Financial dataset
@@ -27,27 +31,26 @@ df["Operating Profit"] = df["Gross Profit"] - df["Operating Expenses"]
 df["Net Profit"] = df["Operating Profit"] - df["Interest"] - df["Taxes"]
 
 # ───────────────────────────────────────────────
-# Dashboard style setup
+# Dashboard chart
 # ───────────────────────────────────────────────
 sns.set_theme(style="darkgrid", palette="crest")
+fig, ax = plt.subplots(figsize=(10, 6))
 
-plt.figure(figsize=(10,6))
-plt.plot(df["Year"], df["Gross Profit"], marker='o', linewidth=3, label="Gross Profit")
-plt.plot(df["Year"], df["Operating Profit"], marker='o', linewidth=3, label="Operating Profit")
-plt.plot(df["Year"], df["Net Profit"], marker='o', linewidth=3, label="Net Profit")
+ax.plot(df["Year"], df["Gross Profit"], marker='o', linewidth=3, label="Gross Profit")
+ax.plot(df["Year"], df["Operating Profit"], marker='o', linewidth=3, label="Operating Profit")
+ax.plot(df["Year"], df["Net Profit"], marker='o', linewidth=3, label="Net Profit")
 
-# Title and labels
-plt.title("📊 Financial Performance Dashboard (2021–2024)", fontsize=16, weight='bold')
-plt.xlabel("Year", fontsize=12)
-plt.ylabel("£ Amount", fontsize=12)
+ax.fill_between(df["Year"], df["Net Profit"], color="green", alpha=0.1)
+ax.set_title("📈 Profit Trends", fontsize=16, weight='bold')
+ax.set_xlabel("Year")
+ax.set_ylabel("£ Amount")
+ax.legend(title="Profit Metrics")
+ax.grid(alpha=0.3)
 
-# Highlighting design
-plt.fill_between(df["Year"], df["Net Profit"], color="green", alpha=0.1)
-plt.grid(alpha=0.3)
-plt.legend(title="Profit Metrics", loc="upper left")
-plt.tight_layout()
+st.pyplot(fig)
 
 # ───────────────────────────────────────────────
-# Display chart
+# Data table
 # ───────────────────────────────────────────────
-plt.show()
+st.subheader("📋 Summary Data")
+st.dataframe(df)
