@@ -1,63 +1,71 @@
 import streamlit as st
+import pandas as pd
 import altair as alt
-from vega_datasets import data
 
 # ────────────────────────────────────────────────
 # Streamlit Page Setup
 # ────────────────────────────────────────────────
-st.set_page_config(
-    page_title="Linked Brushing Demo",
-    layout="centered"
-)
+st.set_page_config(page_title="Income vs Investments Dashboard", layout="centered")
 
-st.title("🎯 Altair Linked Brushing Example")
+st.title("💰 Income Survey Dashboard")
 st.markdown("""
-This Streamlit app demonstrates **linked brushing** using  
-the built-in **Cars dataset** from `vega_datasets`.  
-Drag over the scatter plot to filter the bar chart by car origin.
+Explore **Income After Tax** vs **Investments**  
+with linked brushing and demographic filters.
 """)
 
 # ────────────────────────────────────────────────
 # Load Dataset
 # ────────────────────────────────────────────────
-source = data.cars()
+uploaded_file = st.file_uploader("Upload the Income Survey CSV file", type=["csv"])
 
-# ────────────────────────────────────────────────
-# Create Altair Charts
-# ────────────────────────────────────────────────
-brush = alt.selection_interval()
+if uploaded_file is not None:
+    df = pd.read_csv(uploaded_file)
+    st.write("### Dataset Preview", df.head())
 
-points = (
-    alt.Chart(source)
-    .mark_point()
-    .encode(
-        x=alt.X('Horsepower:Q', title='Horsepower'),
-        y=alt.Y('Miles_per_Gallon:Q', title='Miles per Gallon'),
-        color=alt.condition(brush, 'Origin:N', alt.value('lightgray')),
-        tooltip=['Name:N', 'Origin:N', 'Horsepower:Q', 'Miles_per_Gallon:Q']
-    )
-    .add_params(brush)
-    .properties(width=500, height=300)
-)
+    # Ensure the columns exist
+    expected_columns = ["Income_After_Tax", "Investments", "Age", "Gender", "Marital_Status"]
+    if not all(col in df.columns for col in expected_columns):
+        st.error(f"❌ Expected columns not found. Please ensure these columns exist: {expected_columns}")
+    else:
+        # ────────────────────────────────────────────────
+        # Linked Brushing with Altair
+        # ────────────────────────────────────────────────
+        brush = alt.selection_interval()
 
-bars = (
-    alt.Chart(source)
-    .mark_bar()
-    .encode(
-        y=alt.Y('Origin:N', title='Origin'),
-        color='Origin:N',
-        x=alt.X('count(Origin):Q', title='Count')
-    )
-    .transform_filter(brush)
-    .properties(width=500, height=150)
-)
+        points = (
+            alt.Chart(df)
+            .mark_point()
+            .encode(
+                x=alt.X("Income_After_Tax:Q", title="Income After Tax"),
+                y=alt.Y("Investments:Q", title="Investments"),
+                color=alt.condition(brush, "Gender:N", alt.value("lightgray")),
+                tooltip=["Age", "Gender", "Marital_Status", "Income_After_Tax", "Investments"]
+            )
+            .add_params(brush)
+            .properties(width=500, height=350)
+        )
 
-chart = points & bars
+        bars = (
+            alt.Chart(df)
+            .mark_bar()
+            .encode(
+                y=alt.Y("Gender:N", title="Gender"),
+                x=alt.X("count():Q", title="Count"),
+                color="Gender:N"
+            )
+            .transform_filter(brush)
+            .properties(width=500, height=120)
+        )
 
-# ────────────────────────────────────────────────
-# Display Chart
-# ────────────────────────────────────────────────
-st.altair_chart(chart, use_container_width=True)
+        chart = points & bars
 
-st.caption("📊 Data source: vega_datasets.cars() | Built with Altair + Streamlit")
+        st.altair_chart(chart, use_container_width=True)
 
+        # ────────────────────────────────────────────────
+        # Interactive Table based on selection
+        # ────────────────────────────────────────────────
+        st.markdown("### Interactive Table (Age, Gender, Marital Status)")
+        st.dataframe(df[["Age", "Gender", "Marital_Status", "Income_After_Tax", "Investments"]].head(50))
+
+else:
+    st.info("⬆️ Upload your Income Survey CSV to begin.")
