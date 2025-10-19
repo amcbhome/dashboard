@@ -5,67 +5,69 @@ import altair as alt
 # ────────────────────────────────────────────────
 # Streamlit Page Setup
 # ────────────────────────────────────────────────
-st.set_page_config(page_title="Income vs Investments Dashboard", layout="centered")
+st.set_page_config(page_title="Income vs Investment Dashboard", layout="centered")
 
-st.title("💰 Income Survey Dashboard")
+st.title("💰 Income vs Investment Dashboard")
 st.markdown("""
-Explore **Income After Tax** vs **Investments**  
-with linked brushing and demographic filters.
+Explore the relationship between **Income after Tax** and **Investment**  
+across different **Marital Status** categories.  
+You can brush over the scatter plot to filter the bar chart and table.
 """)
 
 # ────────────────────────────────────────────────
 # Load Dataset
 # ────────────────────────────────────────────────
-uploaded_file = st.file_uploader("Upload the Income Survey CSV file", type=["csv"])
+uploaded_file = st.file_uploader("Upload your Income Survey CSV file", type=["csv"])
 
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
     st.write("### Dataset Preview", df.head())
 
-    # Ensure the columns exist
-    expected_columns = ["Income_After_Tax", "Investments", "Age", "Gender", "Marital_Status"]
-    if not all(col in df.columns for col in expected_columns):
-        st.error(f"❌ Expected columns not found. Please ensure these columns exist: {expected_columns}")
+    # Check for expected columns
+    expected_cols = ["Income_after_tax", "Investment", "Marital_status", "Private_pension"]
+    if not all(col in df.columns for col in expected_cols):
+        st.error(f"❌ Missing columns. Please ensure these exist: {expected_cols}")
     else:
         # ────────────────────────────────────────────────
-        # Linked Brushing with Altair
+        # Linked Brushing Charts
         # ────────────────────────────────────────────────
         brush = alt.selection_interval()
 
         points = (
             alt.Chart(df)
-            .mark_point()
+            .mark_point(size=70, filled=True)
             .encode(
-                x=alt.X("Income_After_Tax:Q", title="Income After Tax"),
-                y=alt.Y("Investments:Q", title="Investments"),
-                color=alt.condition(brush, "Gender:N", alt.value("lightgray")),
-                tooltip=["Age", "Gender", "Marital_Status", "Income_After_Tax", "Investments"]
+                x=alt.X("Income_after_tax:Q", title="Income After Tax"),
+                y=alt.Y("Investment:Q", title="Investment"),
+                color=alt.condition(brush, "Marital_status:N", alt.value("lightgray")),
+                tooltip=["Marital_status", "Private_pension", "Income_after_tax", "Investment"]
             )
             .add_params(brush)
-            .properties(width=500, height=350)
+            .properties(width=520, height=360)
         )
 
         bars = (
             alt.Chart(df)
             .mark_bar()
             .encode(
-                y=alt.Y("Gender:N", title="Gender"),
+                y=alt.Y("Marital_status:N", title="Marital Status"),
                 x=alt.X("count():Q", title="Count"),
-                color="Gender:N"
+                color="Marital_status:N"
             )
             .transform_filter(brush)
-            .properties(width=500, height=120)
+            .properties(width=520, height=140)
         )
 
         chart = points & bars
 
+        # Display chart
         st.altair_chart(chart, use_container_width=True)
 
         # ────────────────────────────────────────────────
-        # Interactive Table based on selection
+        # Interactive Table
         # ────────────────────────────────────────────────
-        st.markdown("### Interactive Table (Age, Gender, Marital Status)")
-        st.dataframe(df[["Age", "Gender", "Marital_Status", "Income_After_Tax", "Investments"]].head(50))
+        st.markdown("### Interactive Table (Marital Status & Private Pension)")
+        st.dataframe(df[["Marital_status", "Private_pension", "Income_after_tax", "Investment"]].head(50))
 
 else:
-    st.info("⬆️ Upload your Income Survey CSV to begin.")
+    st.info("⬆️ Upload your Income Survey CSV file to begin.")
