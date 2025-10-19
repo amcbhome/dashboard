@@ -2,75 +2,62 @@ import streamlit as st
 import altair as alt
 from vega_datasets import data
 
-# ──────────────────────────────────────────────
-# Page Configuration
-# ──────────────────────────────────────────────
+# ────────────────────────────────────────────────
+# Streamlit Page Setup
+# ────────────────────────────────────────────────
 st.set_page_config(
-    page_title="Car Performance Dashboard",
+    page_title="Linked Brushing Demo",
     layout="centered"
 )
 
-st.title("🚗 Car Performance Dashboard")
+st.title("🎯 Altair Linked Brushing Example")
 st.markdown("""
-Explore relationships between **horsepower**, **fuel efficiency**, and **car origin**  
-using an interactive linked-brushing chart.
+This Streamlit app demonstrates **linked brushing** using  
+the built-in **Cars dataset** from `vega_datasets`.  
+Drag over the scatter plot to filter the bar chart by car origin.
 """)
 
-# ──────────────────────────────────────────────
-# Load Data
-# ──────────────────────────────────────────────
+# ────────────────────────────────────────────────
+# Load Dataset
+# ────────────────────────────────────────────────
 source = data.cars()
 
-# ──────────────────────────────────────────────
-# Define an Interval Selection (Brush)
-# ──────────────────────────────────────────────
+# ────────────────────────────────────────────────
+# Create Altair Charts
+# ────────────────────────────────────────────────
 brush = alt.selection_interval()
 
-# ──────────────────────────────────────────────
-# Scatter Plot
-# ──────────────────────────────────────────────
 points = (
-    alt.Chart(source, title="Horsepower vs. Miles per Gallon")
-    .mark_point(filled=True, size=80)
+    alt.Chart(source)
+    .mark_point()
     .encode(
-        x=alt.X("Horsepower:Q", title="Horsepower"),
-        y=alt.Y("Miles_per_Gallon:Q", title="Miles per Gallon (MPG)"),
-        color=alt.condition(brush, "Origin:N", alt.value("lightgray")),
-        tooltip=[
-            alt.Tooltip("Name:N", title="Car"),
-            alt.Tooltip("Origin:N", title="Origin"),
-            alt.Tooltip("Horsepower:Q", title="Horsepower"),
-            alt.Tooltip("Miles_per_Gallon:Q", title="MPG"),
-            alt.Tooltip("Cylinders:Q", title="Cylinders"),
-        ],
+        x=alt.X('Horsepower:Q', title='Horsepower'),
+        y=alt.Y('Miles_per_Gallon:Q', title='Miles per Gallon'),
+        color=alt.condition(brush, 'Origin:N', alt.value('lightgray')),
+        tooltip=['Name:N', 'Origin:N', 'Horsepower:Q', 'Miles_per_Gallon:Q']
     )
     .add_params(brush)
-    .interactive()
-    .properties(width=600, height=400)
+    .properties(width=500, height=300)
 )
 
-# ──────────────────────────────────────────────
-# Bar Chart Filtered by Brush
-# ──────────────────────────────────────────────
 bars = (
-    alt.Chart(source, title="Count by Origin (filtered by selection)")
+    alt.Chart(source)
     .mark_bar()
     .encode(
-        y=alt.Y("Origin:N", title="Origin"),
-        x=alt.X("count(Origin):Q", title="Number of Cars"),
-        color="Origin:N",
-        tooltip=["Origin:N", "count(Origin):Q"],
+        y=alt.Y('Origin:N', title='Origin'),
+        color='Origin:N',
+        x=alt.X('count(Origin):Q', title='Count')
     )
     .transform_filter(brush)
-    .properties(width=600)
+    .properties(width=500, height=150)
 )
 
-# ──────────────────────────────────────────────
-# Combine and Display
-# ──────────────────────────────────────────────
 chart = points & bars
+
+# ────────────────────────────────────────────────
+# Display Chart
+# ────────────────────────────────────────────────
 st.altair_chart(chart, use_container_width=True)
 
-# Optional note
-st.caption("Data source: Vega Datasets – 'cars.csv'")
+st.caption("📊 Data source: vega_datasets.cars() | Built with Altair + Streamlit")
 
